@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="16dp"
+    android:paddingEnd="12dp"
+    android:paddingStart="12dp"
+    android:paddingTop="16dp">
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/startTime"
+        style="@style/AgendaTextStyle.StartTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="10:00 AM" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/lastTime"
+        style="@style/AgendaTextStyle.LastTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/startTime"
+        tools:text="1h" />
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/eventType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toEndOf="@+id/startTime"
+        app:layout_constraintTop_toTopOf="@+id/startTime"
+        tools:src="@drawable/ic_restaurant" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/eventTitle"
+        style="@style/AgendaTextStyle.EventTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/eventType"
+        app:layout_constraintTop_toTopOf="@+id/startTime"
+        tools:text="Dinner Time" />
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/eventLocation"
+        style="@style/AgendaTextStyle.Location"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/eventTitle"
+        app:layout_constraintTop_toBottomOf="@+id/eventTitle"
+        tools:text="Ruby's Cafe" />
+
+</android.support.constraint.ConstraintLayout>
