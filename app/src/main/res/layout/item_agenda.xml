@@ -7,7 +7,8 @@
     android:paddingBottom="16dp"
     android:paddingEnd="12dp"
     android:paddingStart="12dp"
-    android:paddingTop="16dp">
+    android:paddingTop="16dp"
+    android:background="@android:color/white">
 
     <android.support.v7.widget.AppCompatTextView
         android:id="@+id/startTime"

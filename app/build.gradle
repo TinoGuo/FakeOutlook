@@ -29,7 +29,13 @@ dependencies {
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+
+    //for simple log
     implementation 'com.jakewharton.timber:timber:4.7.1'
+    //for reactive programing
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
+    implementation "io.reactivex.rxjava2:rxjava:2.2.2"
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

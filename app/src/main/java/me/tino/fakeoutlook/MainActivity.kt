@@ -10,12 +10,13 @@ import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
-import me.tino.fakeoutlook.model.DayItem
-import me.tino.fakeoutlook.view.adapter.CalendarAdapter
-import me.tino.fakeoutlook.view.decoration.CalendarItemDecoration
+import me.tino.fakeoutlook.view.EventView
+import timber.log.Timber
 import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+
+    private val monthCalendar = Calendar.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,42 +38,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
-        nav_view.setNavigationItemSelectedListener(this)
+        eventView.setOnDateChangeListener(object : EventView.OnDateChangeListener {
+            override fun onChange(year: Int, month: Int, dayOfMonth: Int) {
+                //update calendar
+                monthCalendar.set(year, month, dayOfMonth)
+                //update title
+                toolbar.title = monthCalendar.getDisplayName(
+                    Calendar.MONTH,
+                    Calendar.LONG,
+                    Locale.getDefault()
+                )
+            }
+        })
 
-//        val startDate = Calendar.getInstance()
-//        startDate.roll(Calendar.MONTH, -2)
-//        val endDate = Calendar.getInstance()
-//        endDate.roll(Calendar.MONTH, 5)
-//        val list = arrayListOf<DayItem>()
-//        val now = Calendar.getInstance()
-//        var index = 0
-//        var firstIndex = 0
-//        while (startDate[Calendar.YEAR] != endDate[Calendar.YEAR] ||
-//            startDate[Calendar.DAY_OF_YEAR] != endDate[Calendar.DAY_OF_YEAR]) {
-//            val equal = now[Calendar.YEAR] == startDate[Calendar.YEAR] &&
-//                    now[Calendar.DAY_OF_YEAR] == startDate[Calendar.DAY_OF_YEAR]
-//            if (equal) {
-//                firstIndex = index
-//            }
-//            list.add(
-//                DayItem(
-//                    startDate[Calendar.DAY_OF_MONTH],
-//                    startDate.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.getDefault()),
-//                    equal
-//                )
-//            )
-//            startDate.roll(Calendar.DAY_OF_YEAR, 1)
-//            index++
-//        }
-//        val adapter = CalendarAdapter(firstIndex)
-//        calendarView.adapter = adapter
-//        calendarView.addItemDecoration(
-//            CalendarItemDecoration(
-//                this
-//            )
-//        )
-//        adapter.submitList(list)
-//        calendarView.scrollToPosition(firstIndex)
+        nav_view.setNavigationItemSelectedListener(this)
     }
 
     override fun onBackPressed() {

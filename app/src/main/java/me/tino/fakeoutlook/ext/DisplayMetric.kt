@@ -27,3 +27,23 @@ inline fun <reified T : Number> Number.dp2px(): T {
         else -> throw TypeCastException("${T::class} must be subclass of the Number!!!")
     } as T
 }
+
+@Suppress("IMPLICIT_CAST_TO_ANY")
+inline fun <reified T : Number> Number.sp2px(): T {
+    if (this is Byte) {
+        throw IllegalArgumentException("byte is not support type!!!")
+    }
+    val value = TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP,
+        this.toFloat(),
+        Resources.getSystem().displayMetrics
+    )
+    return when (T::class) {
+        Int::class -> value.toInt()
+        Float::class -> value
+        Double::class -> value.toDouble()
+        Long::class -> value.toLong()
+        Short::class -> value.toShort()
+        else -> throw TypeCastException("${T::class} must be subclass of the Number!!!")
+    } as T
+}

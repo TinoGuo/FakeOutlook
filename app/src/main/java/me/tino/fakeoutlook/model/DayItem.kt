@@ -6,13 +6,24 @@ package me.tino.fakeoutlook.model
  * Created by tino on 2018 September 22, 20:06.
  */
 data class DayItem(
-    val offset: Int,
-    val month: String,
-    private var _selected: Boolean
+    val dayOfMonth: Int,
+    val month: Int,     //from 0 to 11
+    val year: Int,
+    val offsetFromMin: Int  //equal to the position in the calendar
 ) {
-    var selected: Boolean
-        get() = _selected
-        set(value) {
-            _selected = value
+    override fun equals(other: Any?): Boolean {
+        return when(other) {
+            !is DayItem -> false
+            else -> this === other ||
+                    (dayOfMonth == other.dayOfMonth && month == other.month && year == other.year)
         }
+    }
+
+    override fun hashCode(): Int {
+        var result = dayOfMonth
+        result = 31 * result + month
+        result = 31 * result + year
+        result = 31 * result + offsetFromMin
+        return result
+    }
 }

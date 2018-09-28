@@ -21,7 +21,9 @@
         android:layout_height="142dp"
         app:layoutManager="android.support.v7.widget.GridLayoutManager"
         app:spanCount="7"
-        tools:listitem="@layout/item_calendar" />
+        tools:listitem="@layout/item_calendar"
+        android:background="@android:color/white"
+        android:elevation="16dp" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/agendaView"

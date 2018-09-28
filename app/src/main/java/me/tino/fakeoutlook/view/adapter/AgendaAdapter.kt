@@ -15,11 +15,15 @@ import me.tino.fakeoutlook.model.AgendaSubEvent
  * mailTo:guochenghaha@gmail.com
  * Created by tino on 2018 September 22, 21:11.
  */
-class AgendaAdapter(private val agendaClick: (AgendaSubEvent) -> Unit) :
+class AgendaAdapter(
+    agendaEventList: List<AgendaSubEvent>,
+    private val agendaClick: (AgendaSubEvent) -> Unit) :
     BaseDataBoundAdapter<AgendaSubEvent, RecyclerView.ViewHolder>(object :
         DiffUtil.ItemCallback<AgendaSubEvent>() {
         override fun areItemsTheSame(oldItem: AgendaSubEvent, newItem: AgendaSubEvent): Boolean {
-            return oldItem.id == newItem.id
+            return oldItem.dayItem.year == newItem.dayItem.year &&
+                    oldItem.dayItem.month == newItem.dayItem.month &&
+                    oldItem.dayItem.dayOfMonth == newItem.dayItem.dayOfMonth
         }
 
         override fun areContentsTheSame(
@@ -32,6 +36,10 @@ class AgendaAdapter(private val agendaClick: (AgendaSubEvent) -> Unit) :
         }
     }) {
 
+    init {
+        submitList(agendaEventList)
+    }
+
     override fun getItemViewType(position: Int): Int {
         return if (getItem(position).anyEvent) EVENTS else EMPTY
     }
@@ -39,7 +47,7 @@ class AgendaAdapter(private val agendaClick: (AgendaSubEvent) -> Unit) :
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when(viewType) {
             EVENTS -> {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_calendar, parent,false)
+                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_agenda, parent,false)
                 EventViewHolder(view)
             }
             EMPTY -> {
@@ -82,7 +90,12 @@ class AgendaAdapter(private val agendaClick: (AgendaSubEvent) -> Unit) :
                 EventType.DINNER -> itemView.eventType.setImageResource(R.drawable.ic_restaurant)
             }
             itemView.eventTitle.text = value.title
-            itemView.eventLocation.text = value.location
+            if (value.location == null) {
+                itemView.eventLocation.visibility = View.GONE
+            } else {
+                itemView.eventLocation.visibility = View.VISIBLE
+                itemView.eventLocation.text = value.location
+            }
 
             itemView.setOnClickListener {
                 agendaClick(agendaSubEvent)
