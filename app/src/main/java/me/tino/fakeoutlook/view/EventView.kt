@@ -21,6 +21,7 @@ import me.tino.fakeoutlook.view.adapter.CalendarAdapter
 import me.tino.fakeoutlook.view.adapter.WeekAdapter
 import me.tino.fakeoutlook.view.decoration.AgendaItemDecoration
 import me.tino.fakeoutlook.view.decoration.CalendarItemDecoration
+import me.tino.fakeoutlook.view.snap.CalendarSnapHelper
 import java.util.*
 
 /**
@@ -148,6 +149,8 @@ class EventView : LinearLayout {
             .subscribe { result: CalculateResult ->
                 calendarAdapter = CalendarAdapter(result.dayItems, result.agendaOffset, onCalendarClick)
                 calendarList.itemAnimator = null
+                //helper class to align top item to the recyclerView
+                CalendarSnapHelper().attachToRecyclerView(calendarList)
                 calendarList.adapter = calendarAdapter
 
                 agendaAdapter = AgendaAdapter(result.agendaSubEvents, onAgendaEventClick)
