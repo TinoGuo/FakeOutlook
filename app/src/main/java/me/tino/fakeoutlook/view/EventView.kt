@@ -66,6 +66,8 @@ class EventView : LinearLayout {
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
     //calendar item click listener
     private val onCalendarClick: (DayItem) -> Unit = { selectedDay ->
+        //like outlook app, stop scroll behavior when click any calendar item
+        agendaList.stopScroll()
         for (i in 0 until agendaAdapter.itemCount) {
             if (agendaAdapter.getItem(i).dayItem == selectedDay) {
                 //ensure the select agenda is at top
