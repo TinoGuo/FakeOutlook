@@ -5,17 +5,21 @@ import android.content.Context
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.ArrayMap
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
 import me.tino.fakeoutlook.R
 import me.tino.fakeoutlook.model.AgendaSubEvent
 import me.tino.fakeoutlook.model.DayItem
+import me.tino.fakeoutlook.model.WeatherInfo
+import me.tino.fakeoutlook.model.WeatherSectionInfo
+import me.tino.fakeoutlook.model.repository.WeatherRepository
 import me.tino.fakeoutlook.view.adapter.AgendaAdapter
 import me.tino.fakeoutlook.view.adapter.CalendarAdapter
 import me.tino.fakeoutlook.view.adapter.WeekAdapter
@@ -23,6 +27,8 @@ import me.tino.fakeoutlook.view.decoration.AgendaItemDecoration
 import me.tino.fakeoutlook.view.decoration.CalendarItemDecoration
 import me.tino.fakeoutlook.view.snap.CalendarSnapHelper
 import java.util.*
+import kotlin.Comparator
+import kotlin.math.roundToInt
 
 /**
  * the combine view of the week, calendar and agenda
@@ -143,27 +149,101 @@ class EventView : LinearLayout {
         minDate.add(Calendar.MONTH, -2)
         maxDate.add(Calendar.YEAR, 1)
 
-        val calDispose = Single.create<CalculateResult> {
+        fun submitCalculateResult(result: CalculateResult) {
+            calendarAdapter = CalendarAdapter(result.dayItems, result.agendaOffset, onCalendarClick)
+            calendarList.itemAnimator = null
+            //helper class to align top item to the recyclerView
+            CalendarSnapHelper().attachToRecyclerView(calendarList)
+            calendarList.adapter = calendarAdapter
+
+            agendaAdapter = AgendaAdapter(result.agendaSubEvents, onAgendaEventClick)
+            agendaList.adapter = agendaAdapter
+            agendaList.scrollToPosition(result.agendaOffset)
+
+            agendaList.addOnScrollListener(agendaScrollListener)
+        }
+
+        fun submitWeather(result: Pair<WeatherInfo, Int>) {
+            val event = agendaAdapter.getItem(result.second)
+            val sectionInfoList = arrayListOf<WeatherSectionInfo>()
+            val dataList = result.first.hourly.data
+            var sum: Double
+            var selectIcon = ""
+            val iconCount = ArrayMap<String, Int>(8)
+            for (i in 0 until dataList.size step 8) {
+                //reset sum result
+                sum = 0.0
+                //clear map
+                iconCount.clear()
+                //every 8 hour a section
+                for (j in 0..7) {
+                    sum += dataList[i + j].temperature
+                    val icon = dataList[i + j].icon
+                    if (!iconCount.containsKey(icon)) {
+                        iconCount[icon] = 0
+                    }
+                    //add visit count
+                    iconCount[icon] = iconCount[icon]!! + 1
+                }
+
+                var max = Int.MIN_VALUE
+                for ((k, v) in iconCount) {
+                    //if count more than now max, replace count and icon
+                    if (v > max) {
+                        max = v
+                        selectIcon = k
+                    }
+                }
+
+                //calculate the average temperature in 8 hour
+                val avgTemperature = (sum / 8).roundToInt()
+                val sectionInfo = WeatherSectionInfo(selectIcon, avgTemperature)
+                sectionInfoList.add(sectionInfo)
+            }
+
+            event.weatherSectionInfo = sectionInfoList
+            agendaAdapter.notifyItemChanged(result.second)
+        }
+
+        val calDisposable = Single.create<CalculateResult> {
             it.onSuccess(calculateDays())
         }
             .subscribeOn(Schedulers.computation())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { result: CalculateResult ->
-                calendarAdapter = CalendarAdapter(result.dayItems, result.agendaOffset, onCalendarClick)
-                calendarList.itemAnimator = null
-                //helper class to align top item to the recyclerView
-                CalendarSnapHelper().attachToRecyclerView(calendarList)
-                calendarList.adapter = calendarAdapter
-
-                agendaAdapter = AgendaAdapter(result.agendaSubEvents, onAgendaEventClick)
-                agendaList.adapter = agendaAdapter
-                agendaList.scrollToPosition(result.agendaOffset)
-
-                agendaList.addOnScrollListener(agendaScrollListener)
+            .doOnSuccess {
+                submitCalculateResult(it)
             }
-        compositeDisposable.add(calDispose)
+            .observeOn(Schedulers.io())
+            .flatMapObservable { result ->
+                val tempCalendar = Calendar.getInstance()
+                //reset the time to the first mills in today
+                tempCalendar.set(Calendar.HOUR_OF_DAY, 0)
+                tempCalendar.set(Calendar.MINUTE, 0)
+                tempCalendar.set(Calendar.SECOND, 0)
+                tempCalendar.set(Calendar.MILLISECOND, 0)
+
+                val today = tempCalendar.timeInMillis / 1000
+                tempCalendar.add(Calendar.DATE, 1)
+                val tomorrow = tempCalendar.timeInMillis / 1000
+
+                return@flatMapObservable Observable.fromArray(today, tomorrow)
+                    .flatMap { time ->
+                        WeatherRepository.getWeatherInfo(time).map {
+                            it to if (time == today) result.agendaOffset else result.agendaOffset + 1
+                        }
+                    }
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                submitWeather(it)
+            }
+        compositeDisposable.add(calDisposable)
     }
 
+    /**
+     * run in background thread to generate mock data
+     * @return CalculateResult  mock data
+     */
     private fun calculateDays(): CalculateResult {
         //the calendar day
         val dayItems = arrayListOf<DayItem>()
@@ -251,6 +331,6 @@ class EventView : LinearLayout {
     )
 
     private companion object {
-        val WEEK = arrayListOf("S", "W", "T", "W", "T", "F", "S")
+        val WEEK = listOf("S", "W", "T", "W", "T", "F", "S")
     }
 }

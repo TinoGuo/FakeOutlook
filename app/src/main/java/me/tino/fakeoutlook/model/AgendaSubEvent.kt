@@ -15,7 +15,8 @@ data class AgendaSubEvent(
     val type: EventType? = null,
     val lastTime: Int = 0,
     val location: String? = null,
-    val title: String? = null
+    val title: String? = null,
+    var weatherSectionInfo: List<WeatherSectionInfo>? = null
 ) {
     val anyEvent: Boolean
         get() = title?.isNotEmpty() == true
@@ -42,13 +43,15 @@ data class AgendaSubEvent(
          * @return AgendaSubEvent   with build in property event
          */
         fun createRandomEvent(dayItem: DayItem, random: Random = Random()): AgendaSubEvent {
-            return AgendaSubEvent(dayItem,
+            return AgendaSubEvent(
+                dayItem,
                 random.nextInt(24),
                 random.nextInt(60),
                 if (random.nextBoolean()) EventType.COFFEE else EventType.DINNER,
                 random.nextInt(2) + 1,
                 INTERNAL_LOCATIONS[random.nextInt(INTERNAL_LOCATIONS.size)],
-                INTERNAL_TITLE[random.nextInt(INTERNAL_TITLE.size)])
+                INTERNAL_TITLE[random.nextInt(INTERNAL_TITLE.size)]
+            )
         }
     }
 }

@@ -7,7 +7,7 @@ import android.graphics.Rect
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
-import android.view.ViewGroup
+import me.tino.fakeoutlook.ext.children
 import me.tino.fakeoutlook.ext.dp2px
 import me.tino.fakeoutlook.ext.sp2px
 import me.tino.fakeoutlook.model.DayItem
@@ -180,18 +180,4 @@ class AgendaItemDecoration : RecyclerView.ItemDecoration() {
             Locale.getDefault()
         )} "
     }
-
-    /** Returns a [MutableIterator] over the views in this view group. */
-    private operator fun ViewGroup.iterator() = object : MutableIterator<View> {
-        private var index = 0
-        override fun hasNext() = index < childCount
-        override fun next() = getChildAt(index++) ?: throw IndexOutOfBoundsException()
-        override fun remove() = removeViewAt(--index)
-    }
-
-    /** Returns a [Sequence] over the child views in this view group. */
-    private val ViewGroup.children: Sequence<View>
-        get() = object : Sequence<View> {
-            override fun iterator() = this@children.iterator()
-        }
 }

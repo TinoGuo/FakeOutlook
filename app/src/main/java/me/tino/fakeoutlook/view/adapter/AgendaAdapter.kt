@@ -10,6 +10,7 @@ import kotlinx.android.synthetic.main.item_agenda.view.*
 import me.tino.fakeoutlook.R
 import me.tino.fakeoutlook.annotation.EventType
 import me.tino.fakeoutlook.model.AgendaSubEvent
+import me.tino.fakeoutlook.view.WeatherWidget
 
 /**
  * mailTo:guochenghaha@gmail.com
@@ -17,7 +18,8 @@ import me.tino.fakeoutlook.model.AgendaSubEvent
  */
 class AgendaAdapter(
     agendaEventList: List<AgendaSubEvent>,
-    private val agendaClick: (AgendaSubEvent) -> Unit) :
+    private val agendaClick: (AgendaSubEvent) -> Unit
+) :
     BaseDataBoundAdapter<AgendaSubEvent, RecyclerView.ViewHolder>(object :
         DiffUtil.ItemCallback<AgendaSubEvent>() {
         override fun areItemsTheSame(oldItem: AgendaSubEvent, newItem: AgendaSubEvent): Boolean {
@@ -41,29 +43,43 @@ class AgendaAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (getItem(position).anyEvent) EVENTS else EMPTY
+        return when {
+            getItem(position).weatherSectionInfo?.isNotEmpty() == true -> FORECAST
+            getItem(position).anyEvent -> EVENTS
+            else -> EMPTY
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return when(viewType) {
+        return when (viewType) {
             EVENTS -> {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_agenda, parent,false)
+                val view =
+                    LayoutInflater.from(parent.context).inflate(R.layout.item_agenda, parent, false)
                 EventViewHolder(view)
             }
             EMPTY -> {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_empty_agenda, parent, false)
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_empty_agenda, parent, false)
                 EmptyViewHolder(view)
+            }
+            FORECAST -> {
+                val view = WeatherWidget(parent.context)
+                view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                ForecastViewHolder(view)
             }
             else -> throw IllegalArgumentException("no related viewType:$viewType")
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when(holder) {
+        when (holder) {
             is EmptyViewHolder -> {
                 //no need to set variable
             }
             is EventViewHolder -> {
+                holder.bind(getItem(position))
+            }
+            is ForecastViewHolder -> {
                 holder.bind(getItem(position))
             }
             else -> throw IllegalArgumentException("no related viewHolder:$holder")
@@ -73,6 +89,7 @@ class AgendaAdapter(
     private companion object {
         private const val EMPTY = 0
         private const val EVENTS = 1
+        private const val FORECAST = 2
     }
 
     private inner class EventViewHolder(view: View) : RecyclerView.ViewHolder(view),
@@ -85,7 +102,7 @@ class AgendaAdapter(
 
             itemView.startTime.text = String.format("%02d:%02d", value.hour, value.min)
             itemView.lastTime.text = "${value.lastTime}h"
-            when(value.type) {
+            when (value.type) {
                 EventType.COFFEE -> itemView.eventType.setImageResource(R.drawable.ic_coffee)
                 EventType.DINNER -> itemView.eventType.setImageResource(R.drawable.ic_restaurant)
             }
@@ -100,6 +117,17 @@ class AgendaAdapter(
             itemView.setOnClickListener {
                 agendaClick(agendaSubEvent)
             }
+        }
+    }
+
+    private class ForecastViewHolder(view: View) : RecyclerView.ViewHolder(view),
+        ViewBind<AgendaSubEvent> {
+        override fun bind(value: AgendaSubEvent) {
+            value.weatherSectionInfo
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    (itemView as WeatherWidget).updaterWeatherInfo(it)
+                }
         }
     }
 
